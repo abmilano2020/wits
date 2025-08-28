@@ -8,23 +8,23 @@ df = pd.read_csv("par_team_city.csv")
 
 # to be fetched automatically
 city_weight = {
-    "Bergamo":100,
-    "Bologna":0,
-    "Cagliari":0,
-    "Como":0,
-    "Cremona":0,
-    "Firenze":0,
-    "Genova":0,
-    "Verona":0,
-    "Milano":0,
-    "Lecce":0,
-    "Napoli":0,
-    "Parma":0,
-    "Pisa":0,
+    "Bergamo":8.82,
+    "Bologna":2.34,
+    "Cagliari":0.01,
+    "Como":0.77,
+    "Cremona":0.05,
+    "Firenze":2.47,
+    "Genova":0.11,
+    "Verona":0.01,
+    "Milano":44.05,
+    "Lecce":0.02,
+    "Napoli":16.61,
+    "Parma":0.06,
+    "Pisa":0.01,
     "Roma":0,
     "Sassuolo":0,
-    "Torino":0,
-    "Udine":0
+    "Torino":9.26,
+    "Udine":0.07
 }
 
 # group lat & lon by city, for cities with > 1 team
@@ -61,6 +61,15 @@ folium.Marker(
     location=[avg_lat, avg_lon],
     icon=icon
 ).add_to(m)
+
+football_design = {"prefix": "fa", "color": "blue", "icon": "futbol"}
+football_icon = folium.Icon(**football_design)
+
+for _, row in df_grouped.iterrows():
+    folium.Marker(
+        location=[row['lat'], row['lon']],
+        icon=football_icon
+    ).add_to(m)
 
 # save map
 map_file = "wits.html"
