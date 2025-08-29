@@ -55,8 +55,14 @@ lon_roma = float(roma_row.iloc[3])
 # create map
 m = folium.Map(location=[lat_roma, lon_roma], zoom_start=6, tiles='Esri.WorldImagery')
 
-kw = {"prefix": "fa", "color": "red", "icon": "trophy"}
-icon = folium.Icon(**kw)
+scudetto_image = "Scudetto.png"
+
+icon = folium.CustomIcon(
+    scudetto_image,
+    icon_size=(25, 25),
+    icon_anchor=(25, 25)
+)
+
 folium.Marker(
     location=[avg_lat, avg_lon],
     icon=icon
