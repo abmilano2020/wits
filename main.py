@@ -4,46 +4,39 @@ import folium
 import webbrowser
 import os
 
-df = pd.read_csv("par_team_city.csv")
+# import & clean file of title chances
+df_chances = pd.read_excel('title_chances.xlsx')
+df_chances = df_chances[['team', 'Title']]
 
-# to be fetched automatically
-team_weight = {
-    "Atalanta": 7.47,
-    "Bologna": 3.47,
-    "Cagliari": 0.02,
-    "Como": 0.60,
-    "Cremonese": 0.11,
-    "Fiorentina": 2.25,
-    "Genoa": 0.12,
-    "Hellas Verona": 0,
-    "Inter": 25.14,
-    "Milan": 5.13,
-    "Juventus": 13.01,
-    "Lazio": 3.34,
-    "Lecce": 0,
-    "Napoli": 20.86,
-    "Parma": 0.07,
-    "Pisa": 0,
-    "Roma": 17.97,
-    "Sassuolo": 0,
-    "Torino": 0.25,
-    "Udinese": 0.19
-}
+df_chances['team'] = df_chances['team'].astype('string')
+df_chances['team'] = df_chances['team'].str.strip().str.lower()
 
-# add team's weights (title chances)
-df['weight'] = df['Squadra'].map(team_weight)
+# import & clean file of teams stadium coordinates
+df_teams = pd.read_csv('par_team_city.csv')
+df_teams = df_teams.rename(columns={'Squadra': 'team'})
+df_teams['team'] = df_teams['team'].astype('string')
+df_teams['team'] = df_teams['team'].str.lower().str.strip()
+
+mask = df_teams['team'] == 'hellas verona'
+
+df_teams.loc[mask, 'team'] = df_teams.loc[mask, 'team'].apply(
+    lambda x: ' '.join([w for w in x.split() if w != 'hellas'])
+)
+
+# merge teams and chances DFs
+df_merged = pd.merge(df_teams, df_chances, on='team', how='inner')
 
 # get lat/lon/weight
-lat = df['Latitudine'].values
-lon = df['Longitudine'].values
-weight = df['weight'].values
+lat = df_merged['Latitudine'].values
+lon = df_merged['Longitudine'].values
+weight = df_merged['Title'].values
 
 # calculate weighted center
 avg_lat = np.average(lat, weights=weight)
 avg_lon = np.average(lon, weights=weight)
 
 # get Roma's coordinates to centre map
-roma_row = df[df['Città'] == "Roma"].iloc[0]
+roma_row = df_merged[df_merged['Città'] == "Roma"].iloc[0]
 lat_roma = float(roma_row['Latitudine'])
 lon_roma = float(roma_row['Longitudine'])
 
@@ -66,7 +59,7 @@ folium.Marker(
 football_design = {"prefix": "fa", "color": "blue", "icon": "futbol"}
 football_icon = folium.Icon(**football_design)
 
-for _, row in df.iterrows():
+for _, row in df_merged.iterrows():
     folium.Marker(
         location=[row['Latitudine'], row['Longitudine']],
         icon=football_icon
